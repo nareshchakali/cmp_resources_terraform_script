@@ -1,4 +1,4 @@
-org = "snd"
+org = "sne"
 env = "uat"
 app = "abc"
 rglocation = "East US"

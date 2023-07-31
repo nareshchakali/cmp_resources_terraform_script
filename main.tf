@@ -10,10 +10,10 @@ terraform {
 # 2. Configure the AzureRM Provider
 provider "azurerm" {
   features {}
-  subscription_id = "11e07d93-b7de-44c1-b006-7218b5fb3180"
-  client_id       = "b30bfd9a-8e64-4c5a-ac79-c166d9ae713c"
-  client_secret   = "mit8Q~qmWXTwifGCRrGggw0m97aJnXNLHwVdTaaZ"
-  tenant_id       = "30bf9f37-d550-4878-9494-1041656caf27"
+  subscription_id = var.subscription_id
+  client_id       = var.client_id
+  client_secret   = var.client_secret
+  tenant_id       = var.tenant_id
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -65,27 +65,22 @@ resource "azurerm_application_insights" "webappi" {
     tags = local.tags
   
 }
-resource "azurerm_app_service_plan" "plantest" {
+resource "azurerm_service_plan" "plantest" {
     name = "${var.org}-${var.env}-${var.app}-plan"
 
     location = var.rglocation
     resource_group_name = azurerm_resource_group.rg.name
     tags = local.tags
-
-    sku {
-      size = lookup(var.sku_to_size_and_tier[var.sku_name], "size", "")
-      tier = lookup(var.sku_to_size_and_tier[var.sku_name], "tier", "")
-    }
-    
-  
+    os_type = var.os_type
+    sku_name = var.sku_name
 }
 
 resource "azurerm_app_service" "webapp" {
     name = "${var.org}-${var.env}-${var.app}-web-api"
     location = var.rglocation
     resource_group_name = azurerm_resource_group.rg.name
-    app_service_plan_id = azurerm_app_service_plan.plantest.id
-    depends_on = [ azurerm_app_service_plan.plantest ]
+    app_service_plan_id = azurerm_service_plan.plantest.id
+    depends_on = [ azurerm_service_plan.plantest ]
 
     site_config {
       always_on = true
@@ -122,7 +117,7 @@ resource "azurerm_app_service" "apiapp" {
     name = "${var.org}-${var.env}-${var.app}-api-app"
     location = var.rglocation
     resource_group_name = azurerm_resource_group.rg.name
-    app_service_plan_id = azurerm_app_service_plan.plantest.id
+    app_service_plan_id = azurerm_service_plan.plantest.id
     depends_on = [ azurerm_mssql_database.db ]
 
     site_config {
